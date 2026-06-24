@@ -2,6 +2,8 @@ package com.att.analytics.state.logging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Application Logs", description = "Stores and queries frontend + backend log entries from SQLite")
 @RestController
 @RequestMapping("/logs")
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class LogController {
     private final LogRepository logRepository;
     private final ObjectMapper objectMapper;
 
-    /** Receives a single log entry from the frontend LoggingService. */
+    @Operation(summary = "Ingest log entry", description = "Receives a single log entry from the frontend LoggingService and persists it to SQLite")
     @PostMapping
     public ResponseEntity<Map<String, Object>> ingestLog(@RequestBody Map<String, Object> payload) {
         try {
@@ -48,7 +51,7 @@ public class LogController {
         }
     }
 
-    /** Returns recent logs, optionally filtered. */
+    @Operation(summary = "Query logs", description = "Returns recent log entries filtered by level, category, or source")
     @GetMapping
     public ResponseEntity<List<LogEntry>> getLogs(
         @RequestParam(defaultValue = "200") int limit,
@@ -67,7 +70,7 @@ public class LogController {
         return ResponseEntity.ok(logs);
     }
 
-    /** Returns aggregate stats broken down by level and category. */
+    @Operation(summary = "Log statistics", description = "Returns total count and breakdown by level and category")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Long> byLevel = new HashMap<>();
@@ -83,7 +86,7 @@ public class LogController {
         ));
     }
 
-    /** Deletes all stored logs. */
+    @Operation(summary = "Clear all logs", description = "Deletes all log entries from SQLite")
     @DeleteMapping
     public ResponseEntity<Map<String, Object>> clearLogs() {
         long count = logRepository.count();
