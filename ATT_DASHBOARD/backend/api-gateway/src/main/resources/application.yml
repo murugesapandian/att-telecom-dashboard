@@ -29,10 +29,6 @@ spring:
             - Path=/api/states/**
           filters:
             - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
 
         - id: provider-service
           uri: http://localhost:8082
@@ -61,6 +57,14 @@ spring:
             - Path=/ws/**
           filters:
             - StripPrefix=0
+
+        # ── Swagger UI static assets — proxy from state-analytics-service ──
+        - id: swagger-ui-assets
+          uri: http://localhost:8081
+          predicates:
+            - Path=/swagger-ui/**,/webjars/**
+          filters:
+            - PreserveHostHeader
 
         # ── Swagger API-docs proxy routes (forward /v3/api-docs/<service> → each service) ──
         - id: swagger-state-analytics
@@ -98,22 +102,7 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     com.att: INFO
 
-# ── Unified Swagger UI (aggregates all 3 microservices) ──
-# URL: http://localhost:8080/swagger-ui.html
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    urls:
-      - name: "State Analytics API  (port 8081)"
-        url: /v3/api-docs/state-analytics
-      - name: "Feedback & Sentiment API  (port 8083)"
-        url: /v3/api-docs/feedback
-      - name: "Plan Comparison API  (port 8084)"
-        url: /v3/api-docs/plan-comparison
-    urls-primary-name: "State Analytics API  (port 8081)"
-    display-request-duration: true
-    groups-order: ASC
-    operations-sorter: alpha
-    disable-swagger-default-url: true
-  api-docs:
-    enabled: false   # Gateway itself has no REST endpoints to document
+# Swagger UI served via proxy from state-analytics-service (port 8081)
+# The gateway proxies /swagger-ui/** and /webjars/** to 8081,
+# and /v3/api-docs/<service> to each respective service.
+# Use http://localhost:8081/swagger-ui.html for the direct Swagger UI.

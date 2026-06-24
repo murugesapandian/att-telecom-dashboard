@@ -2,14 +2,12 @@
 <configuration>
   <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="att-service"/>
 
-  <!-- Console: colored, human-readable -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(${SERVICE_NAME}) %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
 
-  <!-- File: one rolling log per service, structured text format -->
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>logs/${SERVICE_NAME}.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -17,23 +15,20 @@
       <maxHistory>7</maxHistory>
     </rollingPolicy>
     <encoder>
-      <pattern>{"ts":"%d{yyyy-MM-ddTHH:mm:ss.SSS}","service":"${SERVICE_NAME}","level":"%-5level","logger":"%logger{36}","msg":"%replace(%msg){"\"","\\\""}","thread":"%thread"}%n</pattern>
+      <pattern>{"ts":"%d{yyyy-MM-dd HH:mm:ss.SSS}","service":"${SERVICE_NAME}","level":"%-5level","logger":"%logger{36}","msg":"%replace(%msg){"\"","\\\""}"}%n</pattern>
     </encoder>
   </appender>
 
-  <!-- Root -->
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
     <appender-ref ref="FILE"/>
   </root>
 
-  <!-- AT&T packages: debug level to capture all business logic -->
   <logger name="com.att" level="DEBUG" additivity="false">
     <appender-ref ref="CONSOLE"/>
     <appender-ref ref="FILE"/>
   </logger>
 
-  <!-- Reduce framework noise -->
   <logger name="org.apache.kafka" level="WARN"/>
   <logger name="org.springframework.kafka" level="INFO"/>
   <logger name="org.hibernate.SQL" level="INFO"/>
