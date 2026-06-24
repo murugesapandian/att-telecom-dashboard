@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const NAV_ITEMS = [
@@ -8,6 +7,7 @@ const NAV_ITEMS = [
   { path: '/customer-feedback', icon: '💬', label: 'Customer Feedback' },
   { path: '/plan-comparison', icon: '📋', label: 'Plan Comparison' },
   { path: '/documentation', icon: '📄', label: 'Documentation' },
+  { path: '/data-sources', icon: '⚠️', label: 'Data Sources' },
 ];
 
 const Sidebar = ({ collapsed, onToggle }) => {

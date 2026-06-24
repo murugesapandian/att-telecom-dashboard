@@ -27,24 +27,37 @@ public class RealTimeDataProducer {
 
     @Scheduled(fixedRate = 2000)
     public void generateRealtimeActivity() {
-        if (webSocketHandler.getActiveSessionCount() == 0) return;
+        int activeSessions = webSocketHandler.getActiveSessionCount();
+        if (activeSessions == 0) return;
+
+        String eventId = UUID.randomUUID().toString();
+        String state   = STATES[random.nextInt(STATES.length)];
+        String action  = ACTIONS[random.nextInt(ACTIONS.length)];
+        String service = SERVICES[random.nextInt(SERVICES.length)];
+
+        // DATA DISCLOSURE: these events are randomly generated — NOT real AT&T subscriber transactions
+        log.debug("[KAFKA-PRODUCE] [SIMULATED] topic=att.realtime.feed state={} action='{}' service='{}' sessions={} eventId={}",
+            state, action, service, activeSessions, eventId);
 
         Map<String, Object> event = new HashMap<>();
         event.put("type", "LIVE_ACTIVITY");
         event.put("channel", "live_feed");
-        event.put("id", UUID.randomUUID().toString());
-        event.put("state", STATES[random.nextInt(STATES.length)]);
-        event.put("action", ACTIONS[random.nextInt(ACTIONS.length)]);
-        event.put("service", SERVICES[random.nextInt(SERVICES.length)]);
+        event.put("id", eventId);
+        event.put("state", state);
+        event.put("action", action);
+        event.put("service", service);
         event.put("value", String.format("$%.2f", 40 + random.nextDouble() * 120));
         event.put("timestamp", Instant.now().toString());
+        event.put("simulated", true);  // explicit simulation flag on every event
 
         webSocketHandler.broadcastToAll(event);
 
         try {
-            kafkaTemplate.send("att.realtime.feed", objectMapper.writeValueAsString(event));
+            String payload = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("att.realtime.feed", eventId, payload);
+            log.debug("[KAFKA-PRODUCE] Published to att.realtime.feed key={}", eventId);
         } catch (Exception e) {
-            log.error("Failed to publish realtime event to Kafka: {}", e.getMessage());
+            log.error("[KAFKA-PRODUCE] Failed to publish to att.realtime.feed: {}", e.getMessage());
         }
     }
 

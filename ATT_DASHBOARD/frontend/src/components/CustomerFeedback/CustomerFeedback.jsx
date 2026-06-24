@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import logger from '../../services/LoggingService';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -147,6 +148,17 @@ const CustomerFeedback = () => {
   const [expandedProvider, setExpandedProvider] = useState('AT&T');
   const [activeTab, setActiveTab] = useState('rankings');
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    logger.click('CustomerFeedback', 'TAB_CHANGE', { tab });
+  };
+
+  const handleCardToggle = (provider) => {
+    const next = expandedProvider === provider ? null : provider;
+    setExpandedProvider(next);
+    logger.click('CustomerFeedback', 'PROVIDER_CARD_EXPAND', { provider, expanded: next !== null });
+  };
+
   const radarData = FEEDBACK_CATEGORIES.map(cat => ({
     subject: cat.label.replace(' ', '\n'),
     ...CUSTOMER_FEEDBACK.reduce((acc, f) => ({ ...acc, [f.provider]: f.categories[cat.key] * 20 }), {}),
@@ -169,7 +181,7 @@ const CustomerFeedback = () => {
           { id: 'radar', label: '🎯 Competitive Radar' },
           { id: 'opportunities', label: '💡 AT&T Opportunities' },
         ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+          <button key={tab.id} onClick={() => handleTabChange(tab.id)}
             style={{
               padding: '10px 18px', background: 'transparent', border: 'none',
               borderBottom: `2px solid ${activeTab === tab.id ? '#00A8E0' : 'transparent'}`,
@@ -195,7 +207,7 @@ const CustomerFeedback = () => {
                 key={f.provider}
                 feedback={f}
                 isExpanded={expandedProvider === f.provider}
-                onToggle={() => setExpandedProvider(prev => prev === f.provider ? null : f.provider)}
+                onToggle={() => handleCardToggle(f.provider)}
               />
             ))}
           </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import logger from '../../services/LoggingService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { WIRELESS_PLANS, BROADBAND_PLANS } from '../../data/planData';
 
@@ -185,7 +186,7 @@ const PlanComparison = () => {
             { id: 'wireless', icon: '📱', label: 'Wireless Plans' },
             { id: 'broadband', icon: '🏠', label: 'Broadband Plans' },
           ].map(t => (
-            <button key={t.id} onClick={() => setPlanType(t.id)}
+            <button key={t.id} onClick={() => { setPlanType(t.id); logger.click('PlanComparison', 'PLAN_TYPE', { type: t.id }); }}
               style={{
                 padding: '8px 18px', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600,
                 background: planType === t.id ? 'linear-gradient(135deg, rgba(0,168,224,0.2), rgba(0,87,166,0.2))' : 'transparent',
@@ -203,7 +204,7 @@ const PlanComparison = () => {
             { id: 'table', label: '☰ Table' },
             { id: 'chart', label: '📊 Chart' },
           ].map(m => (
-            <button key={m.id} onClick={() => setViewMode(m.id)}
+            <button key={m.id} onClick={() => { setViewMode(m.id); logger.click('PlanComparison', 'VIEW_MODE', { mode: m.id }); }}
               style={{
                 padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12,
                 background: viewMode === m.id ? 'rgba(0,168,224,0.15)' : 'transparent',

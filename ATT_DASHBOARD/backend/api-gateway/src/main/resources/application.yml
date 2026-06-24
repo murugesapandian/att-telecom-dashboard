@@ -16,6 +16,13 @@ spring:
             allowedHeaders: ["*"]
             allowCredentials: true
       routes:
+        - id: logs
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/logs/**
+          filters:
+            - StripPrefix=1
+
         - id: state-analytics
           uri: http://localhost:8081
           predicates:

@@ -1,9 +1,10 @@
-import React, { useState, memo } from 'react';
+import { useState } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { STATE_PROVIDER_DATA, getATTLeadingStates, getATTOpportunityStates, REGIONS } from '../../data/stateProviderData';
-import { getATTHeatColor, getLeaderColor, PROVIDER_COLOR_MAP } from '../../utils/colorUtils';
+import { STATE_PROVIDER_DATA, REGIONS } from '../../data/stateProviderData';
+import { getATTHeatColor, getLeaderColor } from '../../utils/colorUtils';
 import { formatPopulation, formatPercent } from '../../utils/formatters';
+import logger from '../../services/LoggingService';
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
 
@@ -145,6 +146,23 @@ const USAStateMap = ({ liveData }) => {
   const [hoveredState, setHoveredState] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState('All Regions');
 
+  const handleModeChange = (mode) => {
+    setMapMode(mode);
+    logger.click('USAStateMap', 'MAP_MODE_CHANGE', { from: mapMode, to: mode });
+  };
+
+  const handleStateClick = (stateInfo, isSelected) => {
+    setSelectedState(isSelected ? null : stateInfo);
+    if (!isSelected && stateInfo) {
+      logger.mapClick(stateInfo.fips, stateInfo.name, mapMode);
+    }
+  };
+
+  const handleRegionChange = (region) => {
+    setSelectedRegion(region);
+    logger.filter('USAStateMap', 'region', region);
+  };
+
   const stateData = liveData || STATE_PROVIDER_DATA;
 
   const getColor = (fips) => {
@@ -169,7 +187,7 @@ const USAStateMap = ({ liveData }) => {
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: '#E2E8F0', marginRight: 8 }}>Map View:</div>
         {MAP_MODES.map(mode => (
-          <button key={mode.id} onClick={() => setMapMode(mode.id)}
+          <button key={mode.id} onClick={() => handleModeChange(mode.id)}
             title={mode.description}
             style={{
               padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
@@ -182,7 +200,7 @@ const USAStateMap = ({ liveData }) => {
           </button>
         ))}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)}
+          <select value={selectedRegion} onChange={e => handleRegionChange(e.target.value)}
             style={{ padding: '7px 12px', background: '#111C2E', border: '1px solid #1E2D45', borderRadius: 8, color: '#94A3B8', fontSize: 12, cursor: 'pointer' }}>
             {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -240,14 +258,11 @@ const USAStateMap = ({ liveData }) => {
                       const fips = parseInt(geo.id, 10);
                       const stateInfo = FIPS_TO_STATE[fips];
                       const isSelected = selectedState?.fips === geo.id;
-                      const isHovered = hoveredState === geo.id;
                       return (
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
-                          onClick={() => {
-                            if (stateInfo) setSelectedState(isSelected ? null : stateInfo);
-                          }}
+                          onClick={() => handleStateClick(stateInfo, isSelected)}
                           onMouseEnter={() => setHoveredState(geo.id)}
                           onMouseLeave={() => setHoveredState(null)}
                           style={{
@@ -328,7 +343,7 @@ const USAStateMap = ({ liveData }) => {
                 .filter(s => selectedRegion === 'All Regions' || s.region === selectedRegion)
                 .map((state, i) => (
                   <tr key={state.id}
-                    onClick={() => setSelectedState(state)}
+                    onClick={() => { setSelectedState(state); logger.click('USAStateMap', 'TABLE_ROW_CLICK', { state: state.name, leader: state.leader, attShare: state.att.toFixed(1) }); }}
                     style={{
                       borderBottom: '1px solid #1A2535',
                       background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',

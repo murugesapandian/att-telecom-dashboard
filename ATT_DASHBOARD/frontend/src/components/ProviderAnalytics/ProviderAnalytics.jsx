@@ -1,14 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import logger from '../../services/LoggingService';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend,
-  LineChart, Line, ScatterChart, Scatter, ZAxis,
-  Cell, PieChart, Pie,
+  LineChart, Line,
 } from 'recharts';
 import { STATE_PROVIDER_DATA, REGIONS, getNationalAverages } from '../../data/stateProviderData';
 import { PROVIDERS } from '../../data/providers';
-import { PROVIDER_COLOR_MAP, getProviderColor } from '../../utils/colorUtils';
-import { formatPercent, formatNumber } from '../../utils/formatters';
+import { formatPercent } from '../../utils/formatters';
 
 const PROVIDER_KEYS = [
   { key: 'att', label: 'AT&T', color: '#00A8E0' },
@@ -106,9 +105,11 @@ const ProviderAnalytics = ({ liveData }) => {
   ];
 
   const toggleProvider = (key) => {
-    setSelectedProviders(prev =>
-      prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key]
-    );
+    setSelectedProviders(prev => {
+      const next = prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key];
+      logger.filter('ProviderAnalytics', 'providerToggle', { key, active: next });
+      return next;
+    });
   };
 
   const topAttStates = [...stateData].sort((a, b) => b.att - a.att).slice(0, 10);
@@ -123,7 +124,7 @@ const ProviderAnalytics = ({ liveData }) => {
             key={p.id}
             provider={p}
             isSelected={selectedProvider === p.id}
-            onClick={() => setSelectedProvider(prev => prev === p.id ? null : p.id)}
+            onClick={() => { const next = selectedProvider === p.id ? null : p.id; setSelectedProvider(next); logger.click('ProviderAnalytics', 'PROVIDER_SELECT', { provider: p.name, selected: next !== null }); }}
           />
         ))}
       </div>
@@ -134,7 +135,7 @@ const ProviderAnalytics = ({ liveData }) => {
         borderRadius: 12, padding: '16px 20px', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap',
       }}>
         <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Filter by Region:</div>
-        <select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)}
+        <select value={selectedRegion} onChange={e => { setSelectedRegion(e.target.value); logger.filter('ProviderAnalytics', 'region', e.target.value); }}
           style={{ padding: '6px 12px', background: '#0D1526', border: '1px solid #1E2D45', borderRadius: 8, color: '#E2E8F0', fontSize: 12 }}>
           {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -155,7 +156,7 @@ const ProviderAnalytics = ({ liveData }) => {
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           {['bar', 'line'].map(type => (
-            <button key={type} onClick={() => setChartType(type)}
+            <button key={type} onClick={() => { setChartType(type); logger.click('ProviderAnalytics', 'CHART_TYPE', { type }); }}
               style={{
                 padding: '5px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 11,
                 background: chartType === type ? 'rgba(0,168,224,0.15)' : 'transparent',

@@ -1,12 +1,12 @@
-import React from 'react';
+import { useEffect } from 'react';
+import logger from '../../services/LoggingService';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend,
 } from 'recharts';
 import { useKPIMetrics, useRealtimeSubscriberFeed } from '../../hooks/useRealTimeData';
-import { STATE_PROVIDER_DATA, getATTLeadingStates, getATTOpportunityStates } from '../../data/stateProviderData';
-import { formatNumber, formatPercent, formatCurrency } from '../../utils/formatters';
-import { PROVIDER_COLOR_MAP } from '../../utils/colorUtils';
+import { getATTLeadingStates, getATTOpportunityStates } from '../../data/stateProviderData';
+import { formatNumber, formatPercent } from '../../utils/formatters';
 
 const MONTHLY_REVENUE = [
   { month: 'Jan', revenue: 29.8, subscribers: 131 }, { month: 'Feb', revenue: 30.1, subscribers: 132 },
@@ -80,6 +80,10 @@ const OverviewDashboard = () => {
   const feed = useRealtimeSubscriberFeed();
   const attLeadingStates = getATTLeadingStates();
   const opportunityStates = getATTOpportunityStates();
+
+  useEffect(() => {
+    logger.dataLoad('OverviewDashboard', attLeadingStates.length + opportunityStates.length, 0);
+  }, []);
 
   const regionData = [
     { region: 'South', att: 38, verizon: 20, tmobile: 18 },
