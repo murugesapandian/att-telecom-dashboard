@@ -1,0 +1,17 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: att-plan-comparison-service
+  datasource:
+    url: jdbc:sqlite:./data/plan_comparison.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
