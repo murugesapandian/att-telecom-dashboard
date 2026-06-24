@@ -19,13 +19,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.PlanarYUVLuminanceSource;
-import com.google.zxing.ReaderException;
+// removed unused/unsupported checked exception imports (handled generically below)
 import com.google.zxing.common.HybridBinarizer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
@@ -98,8 +96,8 @@ public class ScannerActivity extends AppCompatActivity {
                                     finish();
                                     return;
                                 }
-                            } catch (NotFoundException | ChecksumException | FormatException ignored) {
-                                // not found in this frame
+                            } catch (Exception ignored) {
+                                // not found/decoding error in this frame
                             }
                         }
                     } catch (Exception e) {

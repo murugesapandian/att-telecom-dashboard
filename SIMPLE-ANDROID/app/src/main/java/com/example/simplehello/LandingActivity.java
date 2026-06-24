@@ -42,6 +42,18 @@ public class LandingActivity extends AppCompatActivity {
                 startScanWithPermission();
             }
         });
+
+        FloatingActionButton demo = findViewById(R.id.fab_demo);
+        demo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Insert a demo barcode item to simulate a successful scan
+                String demoValue = "SAMPLE12345";
+                String ts = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
+                items.add(0, new BarcodeItem(demoValue, "CODE_128", ts));
+                adapter.notifyItemInserted(0);
+            }
+        });
     }
 
     private void startScanWithPermission() {
@@ -54,12 +66,12 @@ public class LandingActivity extends AppCompatActivity {
         startScanner();
     }
 
+    private static final int REQUEST_CODE_SCAN = 1234;
+
     private void startScanner() {
-        IntentIntegrator integrator = new IntentIntegrator(this);
-        integrator.setBeepEnabled(true);
-        integrator.setPrompt("Scan a barcode");
-        integrator.setOrientationLocked(false);
-        integrator.initiateScan();
+        // Start the CameraX-based ScannerActivity which returns the scanned value
+        Intent i = new Intent(this, ScannerActivity.class);
+        startActivityForResult(i, REQUEST_CODE_SCAN);
     }
 
     @Override
@@ -75,10 +87,9 @@ public class LandingActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            String contents = result.getContents();
-            String format = result.getFormatName();
+        if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK && data != null) {
+            String contents = data.getStringExtra("SCAN_RESULT");
+            String format = data.getStringExtra("SCAN_FORMAT");
             if (contents != null) {
                 String ts = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                 items.add(0, new BarcodeItem(contents, format == null ? "UNKNOWN" : format, ts));
